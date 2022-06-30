@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script>
+    <style>
+    html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #FFF;
+}
+canvas {
+  display: block;
+}
+
+    </style>
+    <meta charset="utf-8" />
+
+    <script src="https://unpkg.com/ml5@0.3.1/dist/ml5.min.js"></script>
+  </head>
+  <body>
+    <script >
+    console.log('ml5 version:', ml5.version)
+// https://www.youtube.com/watch?v=cO4UP2dX944&list=PLRqwX-V7Uu6YPSwT06y_AEYTqIwbeam3y&index=19
+let soundClassifier;
+let resultP;
+
+var xv = 1; var yv = 0;
+var xp = 10; var yp =10;
+var ax= 5;var ay = 5;
+var gs= 20;var tc = 20;
+var trail = [];
+var tail = 5;
+
+function preload() {
+  let options = { probabilityThreshold: 0.95 };
+  soundClassifier = ml5.soundClassifier('SpeechCommands18w', options);
+  
+}
+function setup() {
+  createCanvas(400, 400);
+  resultP = createP('waiting...');
+  resultP.style('font-size','32pt');
+  soundClassifier.classify(gotResults);
+  //////////////////////////////////////
+    frameRate(5);
+  rectMode(CENTER);
+  trail.push({x : 10 , y : 10 });
+  
+}
+
+function gotResults(error, results) {
+  if (error) {
+    console.log('something went wrong');
+    console.error(error);
+  }
+  resultP.html(`${results[0].label} : ${results[0].confidence}`);
+  ////////////////////////////////////////
+    if (results[0].label === "left") {
+    xv = -1; yv = 0
+  } else if (results[0].label === "right") {
+    xv = 1; yv = 0;
+  } else if (results[0].label === "up") {
+    xv = 0; yv = -1;
+  } else if (results[0].label === "down") {
+    xv = 0; yv = 1;
+  }
+  //////////////////////////////////////////////
+}
+
+function draw() {
+  background(200);
+  
+  xp += xv;
+  yp += yv;
+  
+        if(xp < 0){xp = tc-1;}
+    if(xp > tc-1){xp = 0;}
+    if(yp < 0){yp = tc-1;}
+  if(yp > tc-1){yp = 0;}
+
+  
+
+  fill(255,0,0);
+  rect(ax*gs,ay*gs,tc, tc);
+  
+  fill(0,255,0);
+ 
+  for (let i = 0; i< trail.length; i++){
+  //   rect(trail[i].x += xv*tc,trail[i].y += yv*tc,tc, tc);
+    rect(trail[i].x*gs,trail[i].y*gs,tc, tc);
+       if(xp == trail[i].x && yp == trail[i].y){tail =5;    }//if eat trail
+   }//iterate trail  
+
+    if(xp == ax && yp == ay  ){
+         ax=Math.floor(Math.random()*tc);  ay=Math.floor(Math.random()*tc);
+      tail++;
+    }//if eat apple
+    
+
+    trail.push({x:xp,y:yp});
+    while(trail.length>tail) {
+    trail.shift();
+    }
+    
+
+  //console.log(ax);
+}//draw
+    </script>
+  </body>
+</html>
